@@ -1,0 +1,1051 @@
+{
+  "metadata": {
+    "rule_engine_version": "GST-AUDIT-REVIEW-1.0",
+    "validation_schema": "v4-production-frozen",
+    "batch_id": "EXEMPTIONS-BATCH-1-FINAL",
+    "total_rules_in_batch": 30,
+    "generation_timestamp": "2024-05-27T12:00:00Z",
+    "change_summary": "V4: Abstracted law_reference schema, standardized parameters for machine logic, locked schema for scaling"
+  },
+  "schema_version": "FROZEN",
+  "rule_templates_used": [
+    "MANDATORY_DOCUMENT_MISSING",
+    "ELIGIBILITY_CRITERIA_FAIL",
+    "THRESHOLD_BREACH",
+    "CLASSIFICATION_AMBIGUITY",
+    "TIMING_DISCREPANCY",
+    "PLACE_OF_SUPPLY_OVERRIDE",
+    "VALUATION_COMPOSITE_TEST"
+  ],
+  "rules": [
+    {
+      "rule_id": "EXEMPT-SEZ-001",
+      "category": "Exemptions",
+      "decision_type": "SEZ_SUPPLY_EXEMPTION",
+      "applies_when": {
+        "supply_to": "SEZ_UNIT_OR_DEVELOPER",
+        "exemption_claimed": true,
+        "supply_purpose": "AUTHORIZED_OPERATIONS"
+      },
+      "check": {
+        "type": "DOCUMENT",
+        "description": "Valid Letter of Approval (LOA) for SEZ unit and proof supply is for authorized operations"
+      },
+      "parameters": {
+        "required_documents": ["SEZ_APPROVAL_LETTER", "AUTHORIZED_OPERATIONS_DECLARATION"],
+        "validation_mode": "ALL_MANDATORY"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "SEZ supply exemption claimed without valid SEZ recipient authorization documents",
+        "law_reference": {
+          "domain": "IGST",
+          "topic": "Zero Rated Supplies to SEZ",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["ITC_DENIAL_FOR_SUPPLIER", "REFUND_BLOCKAGE_FOR_SEZ"],
+      "foresight_tags": [
+        {
+          "tag": "POLICY_NARROWING_PATTERN",
+          "confidence": 0.7,
+          "window_days": 90
+        }
+      ],
+      "priority": 1,
+      "template": "MANDATORY_DOCUMENT_MISSING"
+    },
+    {
+      "rule_id": "EXEMPT-SEZ-002",
+      "category": "Exemptions",
+      "decision_type": "SEZ_SUPPLY_EXEMPTION",
+      "applies_when": {
+        "supply_to": "SEZ_UNIT",
+        "billing_address_type": "DTA",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "DOCUMENT",
+        "description": "Billing address matches SEZ approved address"
+      },
+      "parameters": {
+        "address_validation": "MUST_MATCH_SEZ_REGISTERED_ADDRESS",
+        "mismatch_tolerance": "NONE"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Supply to SEZ billed to Domestic Tariff Area (DTA) address, invalidating exemption",
+        "law_reference": {
+          "domain": "SEZ",
+          "topic": "Supply Location Requirements",
+          "authority": "Rules"
+        }
+      },
+      "second_order_effects": ["DEMAND_ON_SUPPLIER", "PENALTY_RISK"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "MANDATORY_DOCUMENT_MISSING"
+    },
+    {
+      "rule_id": "EXEMPT-SEZ-003",
+      "category": "Exemptions",
+      "decision_type": "SEZ_SUPPLY_EXEMPTION",
+      "applies_when": {
+        "supply_to": "SEZ_DEVELOPER",
+        "supply_nature": "CONSTRUCTION_SERVICES",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "DOCUMENT",
+        "description": "Project approval by SEZ Authority and end-use declaration"
+      },
+      "parameters": {
+        "required_documents": ["SEZ_PROJECT_APPROVAL", "CONSTRUCTION_END_USE_AFFIDAVIT"],
+        "validation_mode": "ALL_MANDATORY"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Supply to SEZ developer for construction - high audit scrutiny on proof of SEZ end-use",
+        "law_reference": {
+          "domain": "SEZ",
+          "topic": "Development Regulations",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["ITC_REVERSAL_RISK", "PROJECT_AUDIT_TRIGGER"],
+      "foresight_tags": [],
+      "priority": 2,
+      "template": "MANDATORY_DOCUMENT_MISSING"
+    },
+    {
+      "rule_id": "EXEMPT-SEZ-004",
+      "category": "Exemptions",
+      "decision_type": "SEZ_SUPPLY_EXEMPTION",
+      "applies_when": {
+        "supply_to": "SEZ_UNIT",
+        "export_under": "BOND_LUT",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "DOCUMENT",
+        "description": "Valid LUT or bond for SEZ supplies"
+      },
+      "parameters": {
+        "required_documents": ["VALID_LUT_FILED", "SEZ_ACKNOWLEDGEMENT_RECEIPT"],
+        "validation_mode": "ALL_MANDATORY"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Missing valid Letter of Undertaking (LUT) or bond for SEZ supplies",
+        "law_reference": {
+          "domain": "CGST",
+          "topic": "LUT Requirements",
+          "authority": "Rules"
+        }
+      },
+      "second_order_effects": ["SUPPLY_TAXABLE", "CASH_FLOW_IMPACT"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "MANDATORY_DOCUMENT_MISSING"
+    },
+    {
+      "rule_id": "EXEMPT-SEZ-005",
+      "category": "Exemptions",
+      "decision_type": "SEZ_SUPPLY_EXEMPTION",
+      "applies_when": {
+        "supplier_scheme": "COMPOSITION",
+        "supply_to": "SEZ_UNIT",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Composition taxpayer eligibility for zero-rated supplies"
+      },
+      "parameters": {
+        "eligibility_test": "SUPPLIER_TYPE_ALLOWED",
+        "allowed_supplier_types": ["REGULAR_TAXPAYER", "UNREGISTERED"],
+        "excluded_supplier_types": ["COMPOSITION"]
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Composition taxpayer cannot make zero-rated supplies to SEZ",
+        "law_reference": {
+          "domain": "CGST",
+          "topic": "Composition Scheme Restrictions",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["SCHEME_DISQUALIFICATION", "FULL_TAX_LIABILITY"],
+      "foresight_tags": [
+        {
+          "tag": "THRESHOLD_TIGHTENING_RISK",
+          "confidence": 0.6,
+          "window_days": 180
+        }
+      ],
+      "priority": 1,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-001",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_GOODS_EXEMPTION",
+      "applies_when": {
+        "supply_type": "GOODS_EXPORT",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "DOCUMENT",
+        "description": "Mandatory export documentation"
+      },
+      "parameters": {
+        "required_documents": ["SHIPPING_BILL_NUMBER", "BILL_OF_LADING", "EXPORT_GENERAL_MANIFEST"],
+        "validation_mode": "ALL_MANDATORY"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Export of goods claimed as zero-rated without valid shipping documents",
+        "law_reference": {
+          "domain": "IGST",
+          "topic": "Export Documentation",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["REFUND_REJECTION", "DEMAND_WITH_INTEREST"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "MANDATORY_DOCUMENT_MISSING"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-002",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_GOODS_EXEMPTION",
+      "applies_when": {
+        "supply_type": "GOODS_EXPORT",
+        "payment_received_foreign": true
+      },
+      "check": {
+        "type": "TIMING",
+        "description": "Export proceeds realization timeline"
+      },
+      "parameters": {
+        "max_days_for_realization": 365,
+        "currency_requirement": "CONVERTIBLE_FOREIGN_EXCHANGE",
+        "timeframe_validation": "STRICT"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Export proceeds not realized in foreign exchange within stipulated time",
+        "law_reference": {
+          "domain": "IGST",
+          "topic": "Export Realization Rules",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["TAX_DEMAND", "FEMA_COMPLIANCE_ISSUE"],
+      "foresight_tags": [
+        {
+          "tag": "HISTORICAL_AUDIT_SPIKE",
+          "confidence": 0.8,
+          "window_days": 60
+        }
+      ],
+      "priority": 2,
+      "template": "TIMING_DISCREPANCY"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-003",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_SERVICES_EXEMPTION",
+      "applies_when": {
+        "supply_type": "SERVICES_EXPORT",
+        "recipient_type": "FOREIGN_PERSON",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "PLACE_OF_SUPPLY",
+        "description": "Place of supply determination for service exports"
+      },
+      "parameters": {
+        "place_of_supply_required": "OUTSIDE_INDIA",
+        "determination_confidence_required": "HIGH"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Export of services eligibility ambiguous on place of supply determination",
+        "law_reference": {
+          "domain": "IGST",
+          "topic": "Place of Supply for Services",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["REFUND_DELAY", "LITIGATION_RISK"],
+      "foresight_tags": [],
+      "priority": 2,
+      "template": "PLACE_OF_SUPPLY_OVERRIDE"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-004",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_SERVICES_EXEMPTION",
+      "applies_when": {
+        "supply_type": "SERVICES_EXPORT",
+        "recipient_has_indian_establishment": true,
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "DOCUMENT",
+        "description": "Documentation proving service used outside India"
+      },
+      "parameters": {
+        "required_documents": ["END_USER_LOCATION_PROOF", "SERVICE_CONSUMPTION_OUTSIDE_INDIA_AFFIDAVIT"],
+        "validation_mode": "ALL_MANDATORY"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Service to entity with Indian establishment - weak documentation for end-use outside India",
+        "law_reference": {
+          "domain": "IGST",
+          "topic": "Export of Services Conditions",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["REASSESSMENT_AS_DOMESTIC_SUPPLY", "ITC_REVERSAL_FOR_RECIPIENT"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "MANDATORY_DOCUMENT_MISSING"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-005",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_type": "OIDAR_SERVICES",
+        "recipient_type": "FOREIGN_BUSINESS_UNREGISTERED",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "CLASSIFICATION",
+        "description": "OIDAR service classification and recipient location rules"
+      },
+      "parameters": {
+        "classification_confidence_required": "HIGH",
+        "determination_complexity": "HIGH"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "OIDAR services to unregistered foreign business - location rules create audit ambiguity",
+        "law_reference": {
+          "domain": "IGST",
+          "topic": "OIDAR Services Provisions",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["NON_COMPLIANCE_WITH_OIDAR", "TAXABILITY_IN_RECIPIENT_COUNTRY"],
+      "foresight_tags": [
+        {
+          "tag": "POLICY_NARROWING_PATTERN",
+          "confidence": 0.65,
+          "window_days": 120
+        }
+      ],
+      "priority": 2,
+      "template": "CLASSIFICATION_AMBIGUITY"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-006",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_SERVICES_EXEMPTION",
+      "applies_when": {
+        "export_under": "LUT",
+        "supplier_compliance_status": "HAS_PAST_DEFAULTS"
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Supplier eligibility for LUT based on compliance history"
+      },
+      "parameters": {
+        "compliance_check": "NO_DEFAULTS_WITHIN_LOOKBACK",
+        "lookback_period_months": 12,
+        "default_threshold": "ANY_TAX_DUE"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "LUT furnished despite past tax defaults exceeding prescribed limit",
+        "law_reference": {
+          "domain": "CGST",
+          "topic": "LUT Eligibility Criteria",
+          "authority": "Rules"
+        }
+      },
+      "second_order_effects": ["EXPORT_WITH_PAYMENT_OF_TAX", "CASH_FLOW_LOCK"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-007",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_GOODS_EXEMPTION",
+      "applies_when": {
+        "supply_type": "GOODS_EXPORT",
+        "supply_sequence": "SUPPLY_PRECEDES_EXPORT"
+      },
+      "check": {
+        "type": "TIMING",
+        "description": "Invoice date vs shipping bill date sequence"
+      },
+      "parameters": {
+        "date_sequence_required": "INVOICE_DATE_AFTER_OR_EQUAL_SHIPPING_BILL",
+        "tolerance_days": 0
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Invoice date precedes shipping bill date, indicating domestic supply with subsequent export",
+        "law_reference": {
+          "domain": "IGST",
+          "topic": "Timing of Zero Rated Supply",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["REFUND_DENIAL", "SUPPLY_RECLASSIFICATION"],
+      "foresight_tags": [],
+      "priority": 2,
+      "template": "TIMING_DISCREPANCY"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-008",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_GOODS_EXEMPTION",
+      "applies_when": {
+        "export_to": "SEZ",
+        "refund_claimed": true
+      },
+      "check": {
+        "type": "DOCUMENT",
+        "description": "SEZ endorsement on supplier invoice"
+      },
+      "parameters": {
+        "required_endorsement": "SEZ_AUTHORITY_STAMP_SIGNATURE",
+        "validation_mode": "MANDATORY"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Export to SEZ without invoice endorsed by SEZ authorities",
+        "law_reference": {
+          "domain": "SEZ",
+          "topic": "Invoice Endorsement Requirement",
+          "authority": "Rules"
+        }
+      },
+      "second_order_effects": ["REFUND_BLOCKAGE", "SEZ_UNIT_ITC_DENIAL"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "MANDATORY_DOCUMENT_MISSING"
+    },
+    {
+      "rule_id": "EXEMPT-HEALTH-001",
+      "category": "Exemptions",
+      "decision_type": "HEALTHCARE_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "CLINICAL_ESTABLISHMENT",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Clinical establishment definition and registration"
+      },
+      "parameters": {
+        "registration_requirements": ["CLINICAL_ESTABLISHMENTS_ACT", "STATE_EQUIVALENT"],
+        "validation_mode": "ANY_VALID"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Healthcare service exemption claimed by entity not meeting 'clinical establishment' definition",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Healthcare Services Exemption",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["TAX_DEMAND_ON_FEES", "PENALTY_RISK"],
+      "foresight_tags": [
+        {
+          "tag": "POLICY_NARROWING_PATTERN",
+          "confidence": 0.7,
+          "window_days": 90
+        }
+      ],
+      "priority": 2,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-HEALTH-002",
+      "category": "Exemptions",
+      "decision_type": "HEALTHCARE_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_by": "DOCTOR",
+        "service_through": "HOSPITAL",
+        "payment_model": "REVENUE_SHARE"
+      },
+      "check": {
+        "type": "CLASSIFICATION",
+        "description": "Classification of doctor services through hospital"
+      },
+      "parameters": {
+        "classification_options": ["HOSPITAL_SERVICE", "PROFESSIONAL_SERVICE"],
+        "determination_confidence_required": "HIGH"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Doctor's services through hospital under revenue share - classification ambiguity",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Healthcare Services Classification",
+          "authority": "Classification"
+        }
+      },
+      "second_order_effects": ["DOUBLE_TAXATION_RISK", "ITC_BLOCKAGE_FOR_HOSPITAL"],
+      "foresight_tags": [],
+      "priority": 2,
+      "template": "CLASSIFICATION_AMBIGUITY"
+    },
+    {
+      "rule_id": "EXEMPT-HEALTH-003",
+      "category": "Exemptions",
+      "decision_type": "HEALTHCARE_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "HOSPITAL",
+        "bill_includes": "TAXABLE_ITEMS"
+      },
+      "check": {
+        "type": "VALUATION",
+        "description": "Composite supply determination for hospital bills"
+      },
+      "parameters": {
+        "principal_supply_threshold": 75,
+        "valuation_method": "COMPOSITE_SUPPLY_TEST"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Hospital bill includes significant taxable items potentially altering principal supply nature",
+        "law_reference": {
+          "domain": "CGST",
+          "topic": "Composite Supply Rules",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["PARTIAL_DENIAL_OF_EXEMPTION", "VALUATION_DISPUTE"],
+      "foresight_tags": [],
+      "priority": 2,
+      "template": "VALUATION_COMPOSITE_TEST"
+    },
+    {
+      "rule_id": "EXEMPT-HEALTH-004",
+      "category": "Exemptions",
+      "decision_type": "HEALTHCARE_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "DIAGNOSTIC_LAB",
+        "lab_type": "STAND_ALONE",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Diagnostic lab exemption eligibility"
+      },
+      "parameters": {
+        "allowed_lab_types": ["HOSPITAL_BASED"],
+        "excluded_lab_types": ["STAND_ALONE"]
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Stand-alone diagnostic lab services incorrectly claimed as exempt",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Diagnostic Services Exemption",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["FULL_TAX_ON_FEES", "PAST_DEMAND_ACCUMULATION"],
+      "foresight_tags": [
+        {
+          "tag": "HISTORICAL_AUDIT_SPIKE",
+          "confidence": 0.85,
+          "window_days": 30
+        }
+      ],
+      "priority": 1,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-HEALTH-005",
+      "category": "Exemptions",
+      "decision_type": "HEALTHCARE_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "VETERINARY_CLINIC",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Veterinary service exemption eligibility"
+      },
+      "parameters": {
+        "allowed_services": ["HUMAN_HEALTHCARE_ONLY"],
+        "excluded_services": ["VETERINARY_SERVICES"]
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Veterinary services incorrectly claimed under human healthcare exemption",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Healthcare Services Exemption Scope",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["TAX_DEMAND", "PENALTY_ON_SUPPLIER"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-HEALTH-006",
+      "category": "Exemptions",
+      "decision_type": "HEALTHCARE_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "HOSPITAL",
+        "charge_type": "ROOM_RENT",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "THRESHOLD",
+        "description": "Room rent threshold for exemption"
+      },
+      "parameters": {
+        "threshold_amount": 5000,
+        "threshold_period": "PER_DAY",
+        "comparison_operator": "GREATER_THAN"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Room rent exceeding threshold may be considered separate taxable accommodation supply",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Hospital Room Rent Clarification",
+          "authority": "Clarification"
+        }
+      },
+      "second_order_effects": ["PARTIAL_TAXABILITY", "ITC_AVAILABILITY_FOR_HOSPITAL"],
+      "foresight_tags": [
+        {
+          "tag": "THRESHOLD_TIGHTENING_RISK",
+          "confidence": 0.6,
+          "window_days": 180
+        }
+      ],
+      "priority": 2,
+      "template": "THRESHOLD_BREACH"
+    },
+    {
+      "rule_id": "EXEMPT-HEALTH-007",
+      "category": "Exemptions",
+      "decision_type": "HEALTHCARE_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "BLOOD_BANK",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "VALUATION",
+        "description": "Blood bank service fee structure"
+      },
+      "parameters": {
+        "allowed_fee_structure": "NO_PROCESSING_FEE",
+        "fee_component_check": "PROCESSING_FEE_DETECTED"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Blood bank charging processing fee invalidates exemption",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Blood Bank Services Exemption",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["TAX_ON_PROCESSING_FEE", "COMPLIANCE_OVERSIGHT"],
+      "foresight_tags": [],
+      "priority": 2,
+      "template": "VALUATION_COMPOSITE_TEST"
+    },
+    {
+      "rule_id": "EXEMPT-EDU-001",
+      "category": "Exemptions",
+      "decision_type": "EDUCATION_SERVICES_EXEMPTION",
+      "applies_when": {
+        "institution_type": "EDUCATIONAL_INSTITUTION",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Educational institution affiliation requirements"
+      },
+      "parameters": {
+        "required_affiliations": ["NATIONAL_BOARD", "STATE_BOARD", "UNDER_LAW"],
+        "validation_mode": "ANY_VALID"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Educational institution exemption claimed without required affiliation",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Education Services Exemption",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["TAX_ON_FULL_FEE", "PAST_LIABILITY"],
+      "foresight_tags": [
+        {
+          "tag": "POLICY_NARROWING_PATTERN",
+          "confidence": 0.65,
+          "window_days": 120
+        }
+      ],
+      "priority": 2,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-EDU-002",
+      "category": "Exemptions",
+      "decision_type": "EDUCATION_SERVICES_EXEMPTION",
+      "applies_when": {
+        "institution_type": "VOCATIONAL_TRAINING",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Vocational training NSQF qualification requirement"
+      },
+      "parameters": {
+        "certification_requirement": "NSQF_QUALIFICATION",
+        "validation_mode": "MANDATORY"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Vocational training exemption claimed for non-NSQF qualification courses",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Vocational Training Exemption",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["DEMAND_ON_TUITION_FEES", "ITC_DENIAL_FOR_STUDENTS_CORPORATE"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-EDU-003",
+      "category": "Exemptions",
+      "decision_type": "EDUCATION_SERVICES_EXEMPTION",
+      "applies_when": {
+        "institution_type": "COACHING_TUITION_CENTER",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Coaching center exclusion from exemption"
+      },
+      "parameters": {
+        "excluded_institution_types": ["COACHING_CENTER", "TUITION_CENTER"]
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Coaching/tuition services incorrectly claimed as exempt",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Education Services Exclusion",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["TAX_DEMAND_WITH_INTEREST", "PENALTY_RISK"],
+      "foresight_tags": [
+        {
+          "tag": "HISTORICAL_AUDIT_SPIKE",
+          "confidence": 0.9,
+          "window_days": 30
+        }
+      ],
+      "priority": 1,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-EDU-004",
+      "category": "Exemptions",
+      "decision_type": "EDUCATION_SERVICES_EXEMPTION",
+      "applies_when": {
+        "institution_type": "UNIVERSITY_COLLEGE",
+        "fee_type": "ANCILLARY_SERVICES",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "VALUATION",
+        "description": "Composite supply test for educational services with ancillaries"
+      },
+      "parameters": {
+        "principal_supply_threshold": 80,
+        "valuation_method": "COMPOSITE_SUPPLY_TEST"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Ancillary services bundled with education - composite supply determination risk",
+        "law_reference": {
+          "domain": "CGST",
+          "topic": "Composite Supply Rules",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["PARTIAL_DENIAL_OF_EXEMPTION", "VALUATION_LITIGATION"],
+      "foresight_tags": [],
+      "priority": 2,
+      "template": "VALUATION_COMPOSITE_TEST"
+    },
+    {
+      "rule_id": "EXEMPT-EDU-005",
+      "category": "Exemptions",
+      "decision_type": "EDUCATION_SERVICES_EXEMPTION",
+      "applies_when": {
+        "education_mode": "ONLINE_DISTANCE_LEARNING",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "CLASSIFICATION",
+        "description": "Online education service classification"
+      },
+      "parameters": {
+        "classification_confidence_required": "MEDIUM",
+        "physical_presence_requirement": "AMBIGUOUS"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Online education exemption - ambiguous 'institution' definition for pure online providers",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Education Services Classification",
+          "authority": "Classification"
+        }
+      },
+      "second_order_effects": ["SECTOR_WIDE_AUDIT", "POLICY_CLARIFICATION_PENDING"],
+      "foresight_tags": [
+        {
+          "tag": "DRAFT_NOTIFICATION_SIGNAL",
+          "confidence": 0.55,
+          "window_days": 180
+        }
+      ],
+      "priority": 2,
+      "template": "CLASSIFICATION_AMBIGUITY"
+    },
+    {
+      "rule_id": "EXEMPT-GOVT-001",
+      "category": "Exemptions",
+      "decision_type": "GOVERNMENT_AUTHORITY_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "GOVERNMENT_AUTHORITY",
+        "service_to": "PUBLIC",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "THRESHOLD",
+        "description": "Government service fee threshold for exemption"
+      },
+      "parameters": {
+        "threshold_amount": 5000,
+        "comparison_operator": "GREATER_THAN",
+        "recipient_restriction": "PUBLIC_ONLY"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Government authority services exemption claimed for fees exceeding threshold or services to businesses",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Government Services Exemption",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["TAX_ON_HIGH_VALUE_SERVICES", "ITC_FOR_BUSINESS_RECIPIENTS"],
+      "foresight_tags": [
+        {
+          "tag": "THRESHOLD_TIGHTENING_RISK",
+          "confidence": 0.7,
+          "window_days": 90
+        }
+      ],
+      "priority": 2,
+      "template": "THRESHOLD_BREACH"
+    },
+    {
+      "rule_id": "EXEMPT-GOVT-002",
+      "category": "Exemptions",
+      "decision_type": "GOVERNMENT_AUTHORITY_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "LOCAL_AUTHORITY",
+        "service_type": "RENTING_IMMOVABLE_PROPERTY",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "Government property rental exemption eligibility"
+      },
+      "parameters": {
+        "allowed_lessee_types": ["PUBLIC", "GOVERNMENT"],
+        "excluded_lessee_types": ["COMMERCIAL_ENTITY"]
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Government property rental to commercial entities incorrectly claimed as exempt",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Government Property Rental Exemption",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["TAX_DEMAND_ON_RENT", "ITC_AVAILABLE_TO_LESSEE"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-GOVT-003",
+      "category": "Exemptions",
+      "decision_type": "GOVERNMENT_AUTHORITY_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "GOVERNMENT_ENTITY",
+        "service_type": "REGULATORY_SERVICES",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "VALUATION",
+        "description": "Regulatory service fee structure examination"
+      },
+      "parameters": {
+        "fee_basis_allowed": "COST_RECOVERY_ONLY",
+        "profit_element_check": "DETECT_PROFIT_ELEMENT"
+      },
+      "risk_if_triggered": {
+        "risk_level": "MEDIUM",
+        "reason": "Regulatory services with fees exceeding cost recovery threshold - exemption risk",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Government Services Valuation",
+          "authority": "Valuation"
+        }
+      },
+      "second_order_effects": ["VALUATION_DISPUTE_ON_FEE", "RETROSPECTIVE_TAXATION_RISK"],
+      "foresight_tags": [],
+      "priority": 2,
+      "template": "VALUATION_COMPOSITE_TEST"
+    },
+    {
+      "rule_id": "EXEMPT-GOVT-004",
+      "category": "Exemptions",
+      "decision_type": "GOVERNMENT_AUTHORITY_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "PUBLIC_SECTOR_UNDERTAKING",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "ELIGIBILITY",
+        "description": "PSU vs Government Authority distinction"
+      },
+      "parameters": {
+        "allowed_entity_types": ["GOVERNMENT_AUTHORITY"],
+        "excluded_entity_types": ["PSU", "GOVERNMENT_COMPANY"]
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "PSU incorrectly classified as Government Authority for exemption",
+        "law_reference": {
+          "domain": "CGST",
+          "topic": "Government Authority Definition",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["FULL_TAX_LIABILITY", "PAST_AUDIT_ADJUSTMENTS"],
+      "foresight_tags": [],
+      "priority": 1,
+      "template": "ELIGIBILITY_CRITERIA_FAIL"
+    },
+    {
+      "rule_id": "EXEMPT-GOVT-005",
+      "category": "Exemptions",
+      "decision_type": "GOVERNMENT_AUTHORITY_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_provider": "GOVERNMENT",
+        "service_to": "ANOTHER_GOVERNMENT",
+        "consideration_charged": true,
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "VALUATION",
+        "description": "Inter-governmental service consideration examination"
+      },
+      "parameters": {
+        "consideration_type_check": "COMMERCIAL_VS_NOMINAL",
+        "threshold_for_commercial": "MARKET_RATE_COMPARISON"
+      },
+      "risk_if_triggered": {
+        "risk_level": "LOW",
+        "reason": "Inter-governmental services with commercial consideration - audit may examine valuation",
+        "law_reference": {
+          "domain": "GST",
+          "topic": "Inter-Governmental Services Exemption",
+          "authority": "Notification"
+        }
+      },
+      "second_order_effects": ["INTER_DEPARTMENTAL_SETTLEMENTS", "MINIMAL_TAX_EFFECT"],
+      "foresight_tags": [],
+      "priority": 3,
+      "template": "VALUATION_COMPOSITE_TEST"
+    },
+    {
+      "rule_id": "EXEMPT-EXPORT-009",
+      "category": "Exemptions",
+      "decision_type": "EXPORT_OF_SERVICES_EXEMPTION",
+      "applies_when": {
+        "service_type": "INTERMEDIARY_SERVICES",
+        "exemption_claimed": true
+      },
+      "check": {
+        "type": "PLACE_OF_SUPPLY",
+        "description": "Intermediary service classification and place of supply"
+      },
+      "parameters": {
+        "place_of_supply_rule": "SUPPLIER_LOCATION",
+        "determination_confidence_required": "HIGH"
+      },
+      "risk_if_triggered": {
+        "risk_level": "HIGH",
+        "reason": "Intermediary services incorrectly classified as export - deemed location is supplier's location",
+        "law_reference": {
+          "domain": "IGST",
+          "topic": "Place of Supply for Intermediary Services",
+          "authority": "Act"
+        }
+      },
+      "second_order_effects": ["DOMESTIC_TAX_LIABILITY", "REFUND_RECOVERY"],
+      "foresight_tags": [
+        {
+          "tag": "HISTORICAL_AUDIT_SPIKE",
+          "confidence": 0.9,
+          "window_days": 60
+        }
+      ],
+      "priority": 1,
+      "template": "PLACE_OF_SUPPLY_OVERRIDE"
+    }
+  ],
+  "schema_definition": {
+    "status": "FROZEN",
+    "changes_allowed": false,
+    "next_schema_version": "2.0.0",
+    "frozen_date": "2024-05-27"
+  }
+}
